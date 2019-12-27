@@ -23,14 +23,19 @@ class system():
         self.psi = np.array([self.psi_0, self.psi_1])
         self.h = self.x[1] - self.x[0]
         
+<<<<<<< HEAD
     def func(self, V):    
         return 2*m/(h_b**2)*(V-np.ones(self.N)*self.E)
+=======
+    def f(self, V):    
+        return -2*m/(h_b**2)*(V-np.ones(self.N)*self.E)
+>>>>>>> 2d792a8c779709eaacfef5b240db329870d5e941
     
     def numerov(self, k): #return k+1 step 
         y_1 = self.psi[-1]
         y_0 = self.psi[-2]
         h = self.h
-        f = self.func(self.V)
+        f = self.f(self.V)
         y_2 = (2*(1 - (5/12)*h**2*f[k])*y_1 - (1 + h**2/12*f[k-1])*y_0)/(1 + h**2/12*f[k+1])
         return y_2
     

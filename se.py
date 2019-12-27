@@ -34,7 +34,7 @@ class system():
         y_2 = (2*(1 - (5/12)*h**2*f[k])*y_1 - (1 + h**2/12*f[k-1])*y_0)/(1 + h**2/12*f[k+1])
         return y_2
     
-    def integrate(self):  #does the actual integration
+    def integrate(self):  
         k = 0
         while(k<self.N-2):
             self.psi = np.append(self.psi, [self.numerov(k)], axis=-1)
@@ -44,32 +44,41 @@ class system():
 
 
 def main():
-    x = np.linspace(-np.pi, np.pi, 1000)
-    y = np.linspace(-np.pi, np.pi, 1000)
-    f_1 = lambda x: x
-    f_2 = lambda y: np.sin(y)+np.cos(y)
+    x = np.linspace(-np.pi, np.pi, 2000)
+    y = np.linspace(-np.pi, np.pi, 2000)
+    f_1 = lambda x: x**2
+    f_2 = lambda y: y**2
     V_x = f_1(x)
     V_y = f_2(y)
     psi_0 = 0
-    psi_1 = 0.01
-    E = 3
+    psi_1 = 0.001
+    E = 15
     
-    s_x = system(x, V_x, psi_0, psi_1, E-E/3)
+    s_x = system(x, V_x, psi_0, psi_1, E/2)
     psi_x = s_x.integrate()
-    s_y = system(y, V_y, psi_0, psi_1, 2*E/3)
+    s_y = system(y, V_y, psi_0, psi_1, E/2)
     psi_y = s_y.integrate()
     
     psi = np.array([k*psi_y for k in psi_x])
+    V = np.array([k + V_y for k in V_x])
     xx, yy = np.meshgrid(x,y)
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    surf = ax.plot_surface(xx, yy, psi, cmap=cm.inferno,
+    ax1 = ax1 = fig.add_subplot(121,projection='3d')
+    surf = ax1.plot_surface(xx, yy, psi, cmap=cm.inferno,
                        linewidth=0, antialiased=False)
-    fig.colorbar(surf, shrink=0.5, aspect=5)
+
     plt.title('Wavefunction')
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.legend()
+   
+    ax2 = ax1 = fig.add_subplot(122,projection='3d')
+    surf = ax2.plot_surface(xx, yy, V, cmap=cm.viridis,
+                       linewidth=0, antialiased=False)
+    plt.title('Potential')
+    plt.xlabel('X')
+    plt.ylabel('Y')   
+    
     plt.show()
 
     return None

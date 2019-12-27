@@ -24,7 +24,7 @@ class system():
         self.h = self.x[1] - self.x[0]
         
     def func(self, V):    
-        return -2*m/(h_b**2)*(V-np.ones(self.N)*self.E)
+        return 2*m/(h_b**2)*(V-np.ones(self.N)*self.E)
     
     def numerov(self, k): #return k+1 step 
         y_1 = self.psi[-1]
@@ -39,20 +39,27 @@ class system():
         while(k<self.N-2):
             self.psi = np.append(self.psi, [self.numerov(k)], axis=-1)
             k+=1
-        self.psi = self.psi/max(self.psi)
+        self.psi = self.psi/np.trapz(self.psi**2, dx=self.h)
         return self.psi
 
 
 def main():
-    x = np.linspace(-np.pi, np.pi, 2000)
-    y = np.linspace(-np.pi, np.pi, 2000)
-    f_1 = lambda x: x**2
-    f_2 = lambda y: y**2
+    x = np.linspace(-np.pi, np.pi, 1000)
+    y = np.linspace(-np.pi, np.pi, 1000)
+    
+    def f_1(x):
+        v = np.exp(-np.absolute(x))
+        return v
+    
+    def f_2(y):
+        v = np.exp(-np.absolute(y))
+        return v
+        
     V_x = f_1(x)
     V_y = f_2(y)
     psi_0 = 0
-    psi_1 = 0.001
-    E = 15
+    psi_1 = 0.0001
+    E = -2
     
     s_x = system(x, V_x, psi_0, psi_1, E/2)
     psi_x = s_x.integrate()
@@ -62,15 +69,16 @@ def main():
     psi = np.array([k*psi_y for k in psi_x])
     V = np.array([k + V_y for k in V_x])
     xx, yy = np.meshgrid(x,y)
+    
     fig = plt.figure()
     ax1 = ax1 = fig.add_subplot(121,projection='3d')
     surf = ax1.plot_surface(xx, yy, psi, cmap=cm.inferno,
                        linewidth=0, antialiased=False)
-
     plt.title('Wavefunction')
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.legend()
+
    
     ax2 = ax1 = fig.add_subplot(122,projection='3d')
     surf = ax2.plot_surface(xx, yy, V, cmap=cm.viridis,
@@ -80,6 +88,7 @@ def main():
     plt.ylabel('Y')   
     
     plt.show()
+    plt.savefig('plots/'+ 'exponential potenials.png')
 
     return None
 

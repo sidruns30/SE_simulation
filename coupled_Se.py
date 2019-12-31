@@ -2,6 +2,9 @@ import numpy as np
 from numpy import append
 import time
 import matplotlib.pyplot as plt
+import numpy.linalg as lalg
+from matplotlib import cm
+
 
 def RK4(x_0, f_0, g, h):
     k1 = h*g(x_0,f_0)
@@ -28,7 +31,7 @@ def inner_prod(x_0, x_f, f, g, h):
     y_0 = y_(0, None) #y_ depends only of first para
 
     (x, y) = integrate(x_0, x_f, y_0, y_, h)    
-    return y[-1]-y[0]
+    return y[-1]-y[0], x
     
     
 #Set boundaries   
@@ -36,16 +39,23 @@ x_0 = -np.pi
 x_f = np.pi
 y_0 = 0
 h_bar = 1
+n_basis = 5  #Number of basis vectors
+
 
 #Create basis functions
-e = [lambda x: np.exp(1j*k*x) for k in range(5)]
+def make_f(i):
+    def f(x):
+        return np.exp(1j*i*x)
+    return f
+
+e = [make_f(i) for i in range(n_basis)]
 
 #Initialize Hamiltonian matrix
 H_mat = np.empty((len(e),len(e)),dtype=complex)
 
 #Set kinetic and potential energy functions, find hamiltonian
 T = lambda k: -h_bar*1j*k**2 #Is like the derivative on exp basis
-U = lambda x: 0
+U = lambda x: -x**2
 H = lambda x: T(x) + U(x)
 
 ket = [lambda x: H(x)*e[i](x) for i in range(len(e))]  #Function on the right side
@@ -53,8 +63,17 @@ bra = e
 
 for i in range(len(H_mat[:,0])):
     for j in range(len(H_mat[0,:])):
-        H_mat[i,j] = inner_prod(x_0, x_f, bra[i], ket[j], h=0.01)
-
-print(H_mat)
+        H_mat[i,j], x = inner_prod(x_0, x_f, bra[i], ket[j], h=0.01)
 
 
+E, v = lalg.eig(H_mat)
+v = np.reshape([v[i] for i in range(len(v))], (n_basis,n_basis))
+
+E = abs(E)
+
+fig = plt.figure(figsize=(20,20))
+for i,en in zip(range(n_basis),E):
+    psi = [e[i](x)*v[i][j] for j in range(n_basis)]
+    psi = np.sum(psi, axis=0)
+    plt.plot(x, psi,color= cm.inferno(float(en/max(E))) ,label='Energy is ' + str(en))
+    plt.legend()

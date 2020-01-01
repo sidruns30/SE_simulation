@@ -9,7 +9,7 @@ I use a [Numerov integrator](https://en.wikipedia.org/wiki/Numerov%27s_method) t
 ## matrix_se.py (v1)
 *matrix_se.py* uses the matrix representation of the Schrodinger equation to solve for the wavefunction. It involves calculating the Hamiltonian matrix, where each element of the matrix H(i,j) is given by <i|H|j>, |i>, <j| being the kets and the bras respecitvely. I use the basis functions for the infinite square well: sin(kx), cos(kx), k=1,2,...n to calculate the Hamiltonian matrix. 
 
-In the calculation, the Hamiltonain matrix is split into H_mat_K and H_mat_U, the matrices for the kinetic and potential energies respectively. H_mat_K is set to be a diagonal matrix with entries (1,1,4,4,9,9,...n^2) depending on what n is set to. 
+In the calculation, the Hamiltonain matrix is split into H_mat_K and H_mat_U, the matrices for the kinetic and potential energies respectively. H_mat_K is set to be a diagonal matrix with entries (1,1,4,4,9,9,...n^2) depending on what n is. 
 
 The core of the file involves calulating H_mat_U where the inner product <i|U|j> is carried out. The program uses an RK4 integrator to perform this and the values are appended to H_mat_U. 
 

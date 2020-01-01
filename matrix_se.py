@@ -40,8 +40,8 @@ x_f = np.pi
 l = x_f - x_0
 y_0 = 0
 h_bar = 1
-n_basis = 10  #Number of basis vectors
-h = 0.01
+n_basis = 12  #Number of basis vectors
+h = 0.005
 x = np.linspace(x_0,x_f,l/h)
 
 
@@ -68,7 +68,7 @@ temp[1::2] = t1
 H_mat_K = np.diag(temp)
 
 #Set potential
-U = lambda x: np.exp(x)#10*np.exp(-x**2/0.5)
+U = lambda x: x**10
 ket_U = []
 
 #Get kets functions for <i\U\j>
@@ -77,10 +77,15 @@ for i in range(n_basis):
 
 #Get H matrix for potential energy term
 H_mat_U = np.zeros((len(e),len(e))) 
-    
+
+start = time.time()
+  
 for i in range(n_basis):
     for j in range(n_basis):
         H_mat_U[j,i] = inner_prod(x_0, x_f, bra[j], ket_U[i], h)
+
+end = time.time()
+print("Elapsed calculation time: " + str(end-start) + ' s')
 
 H = H_mat_K + H_mat_U
 
@@ -97,13 +102,14 @@ v = v[ind]
 print('Allowed energies are: ')
 print(E)
 
-#Calculate ground state wavefunction
-psi = [bra[i](x)*v[0][i] for i in range(n_basis)]
-psi = np.sum(psi, axis=0)
-
 fig = plt.figure(figsize=(20,20))
 plt.plot(x, U(x), '--', label='$U(x)$')
-plt.title('Ground State Wavefunction', fontsize=30)
-plt.plot(x, psi, color='red', label='$\psi (x)$'+ '; ' + '$ E = $' + str(round(E[0],2)))
-plt.grid()
-plt.legend(fontsize=25)
+#Plot wavefunctions
+for j in range(3):
+    psi = [bra[i](x)*v[j][i] for i in range(n_basis)]
+    psi = np.sum(psi, axis=0)
+    
+    plt.title('Ground State Wavefunction', fontsize=30)
+    plt.plot(x, psi, label='$\psi_{'+str(j)+'} (x)$'+ '; ' + '$ E = $' + str(round(E[j],2)))
+    plt.grid()
+    plt.legend(fontsize=25)

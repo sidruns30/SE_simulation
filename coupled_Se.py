@@ -27,53 +27,83 @@ def integrate(x_0, x_f, y_0, g, h):  #f and g are fucntions, h is step size
     
 def inner_prod(x_0, x_f, f, g, h): 
     
-    y_ = lambda x, _: np.conj(f(x))*g(x)
+    y_ = lambda x, _: (f(x))*g(x)
     y_0 = y_(0, None) #y_ depends only of first para
 
     (x, y) = integrate(x_0, x_f, y_0, y_, h)    
-    return y[-1]-y[0], x
+    return 2*(y[-1]-y[0])/(x_f-x_0)
     
     
 #Set boundaries   
 x_0 = -np.pi
 x_f = np.pi
+l = x_f - x_0
 y_0 = 0
 h_bar = 1
-n_basis = 5  #Number of basis vectors
+n_basis = 10  #Number of basis vectors
+h = 0.01
+x = np.linspace(x_0,x_f,l/h)
 
 
-#Create basis functions
-def make_f(i):
+#Create basis functions (sin(kx) if k odd or cos(kx) if k even)
+def generate_basis(n):
+    k = n*np.pi/l
     def f(x):
-        return np.exp(1j*i*x)
+        if (n%2!=0):
+            return np.sin((k+1)*x)
+        else:
+            return np.cos((k+1)*x)
     return f
 
-e = [make_f(i) for i in range(n_basis)]
-
-#Initialize Hamiltonian matrix
-H_mat = np.empty((len(e),len(e)),dtype=complex)
-
-#Set kinetic and potential energy functions, find hamiltonian
-T = lambda k: -h_bar*1j*k**2 #Is like the derivative on exp basis
-U = lambda x: -x**2
-H = lambda x: T(x) + U(x)
-
-ket = [lambda x: H(x)*e[i](x) for i in range(len(e))]  #Function on the right side
+e = [generate_basis(k) for k in range(n_basis)] 
 bra = e
 
-for i in range(len(H_mat[:,0])):
-    for j in range(len(H_mat[0,:])):
-        H_mat[i,j], x = inner_prod(x_0, x_f, bra[i], ket[j], h=0.01)
+#Make the H matrix for kinetic energy
+t1 = [(i+1)**2 for i in range(int(n_basis/2))]
+t2 = [(i+1)**2 for i in range(n_basis - int(n_basis/2))]
+temp = [None]*(n_basis)
+temp[::2] = t2
+temp[1::2] = t1
+
+H_mat_K = np.diag(temp)
+
+#Set potential
+U = lambda x: np.exp(x)#10*np.exp(-x**2/0.5)
+ket_U = []
+
+#Get kets functions for <i\U\j>
+for i in range(n_basis):
+    ket_U.append(lambda x: U(x)*e[i](x))  
+
+#Get H matrix for potential energy term
+H_mat_U = np.zeros((len(e),len(e))) 
+    
+for i in range(n_basis):
+    for j in range(n_basis):
+        H_mat_U[j,i] = inner_prod(x_0, x_f, bra[j], ket_U[i], h)
+
+H = H_mat_K + H_mat_U
+
+print('The Hamiltonian Matrix is: ')
+print(np.round(H,1))
 
 
-E, v = lalg.eig(H_mat)
-v = np.reshape([v[i] for i in range(len(v))], (n_basis,n_basis))
+#Get eigenvalues and eigenvectors
+E, v = lalg.eig(H) #Side note: e has complex values with small values for j part
+ind = np.argsort(E)
+E = E[ind]
+v = v[ind]
 
-E = abs(E)
+print('Allowed energies are: ')
+print(E)
+
+#Calculate ground state wavefunction
+psi = [bra[i](x)*v[0][i] for i in range(n_basis)]
+psi = np.sum(psi, axis=0)
 
 fig = plt.figure(figsize=(20,20))
-for i,en in zip(range(n_basis),E):
-    psi = [e[i](x)*v[i][j] for j in range(n_basis)]
-    psi = np.sum(psi, axis=0)
-    plt.plot(x, psi,color= cm.inferno(float(en/max(E))) ,label='Energy is ' + str(en))
-    plt.legend()
+plt.plot(x, U(x), '--', label='$U(x)$')
+plt.title('Ground State Wavefunction', fontsize=30)
+plt.plot(x, psi, color='red', label='$\psi (x)$'+ '; ' + '$ E = $' + str(round(E[0],2)))
+plt.grid()
+plt.legend(fontsize=25)

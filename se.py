@@ -25,8 +25,6 @@ class system():
         self.psi_n = psi_n
         self.eigen_e = np.array([])
 
-    def func(self, V):    
-        return 2*m/(h_b**2)*(V-np.ones(self.N)*self.E)
     def f(self, V):    
         return -2*m/(h_b**2)*(V-np.ones(self.N)*self.E)
 

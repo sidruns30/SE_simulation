@@ -42,6 +42,7 @@ class system():
         while(k<self.N-2):
             self.psi = np.append(self.psi, [self.numerov(k)], axis=-1)
             k+=1
+	self.psi = self.psi/np.sqrt(np.trapz(self.psi**2, self.h))
         return self.psi
 
     def calc_eigen_e(self):

@@ -49,10 +49,7 @@ x = np.linspace(x_0,x_f,l/h)
 def generate_basis(n):
     k = n*np.pi/l
     def f(x):
-        if (n%2!=0):
-            return np.sin((k+1)*x)
-        else:
-            return np.cos((k+1)*x)
+        return np.sin((k+1)*x)
     return f
 
 e = [generate_basis(k) for k in range(n_basis)] 
